@@ -1,0 +1,147 @@
+#pragma version 10
+
+smart_contracts.token_decipher.contract.TokenDecipher.approval_program:
+    // smart_contracts/token_decipher/contract.py:4
+    // class TokenDecipher(ARC4Contract):
+    method "createApplication(string,string)void"
+    method "createAsset()void"
+    txna ApplicationArgs 0
+    match main_createApplication_route@1 main_createAsset_route@2
+    err // reject transaction
+
+main_createApplication_route@1:
+    // smart_contracts/token_decipher/contract.py:9
+    // @arc4.abimethod(allow_actions=["NoOp"],create="require")
+    txn OnCompletion
+    !
+    assert // OnCompletion is NoOp
+    txn ApplicationID
+    !
+    assert // is creating
+    // smart_contracts/token_decipher/contract.py:4
+    // class TokenDecipher(ARC4Contract):
+    txna ApplicationArgs 1
+    extract 2 0
+    txna ApplicationArgs 2
+    extract 2 0
+    // smart_contracts/token_decipher/contract.py:9
+    // @arc4.abimethod(allow_actions=["NoOp"],create="require")
+    callsub createApplication
+    int 1
+    return
+
+main_createAsset_route@2:
+    // smart_contracts/token_decipher/contract.py:14
+    // @arc4.abimethod()
+    txn OnCompletion
+    !
+    assert // OnCompletion is NoOp
+    txn ApplicationID
+    assert // is not creating
+    callsub createAsset
+    int 1
+    return
+
+
+// smart_contracts.token_decipher.contract.TokenDecipher.createApplication(assetName: bytes, uintName: bytes) -> void:
+createApplication:
+    // smart_contracts/token_decipher/contract.py:9-10
+    // @arc4.abimethod(allow_actions=["NoOp"],create="require")
+    // def createApplication(self, assetName:String, uintName:String) -> None:
+    proto 2 0
+    // smart_contracts/token_decipher/contract.py:11
+    // self.asset_name = assetName
+    byte "asset_name"
+    frame_dig -2
+    app_global_put
+    // smart_contracts/token_decipher/contract.py:12
+    // self.uint_name = uintName
+    byte "uint_name"
+    frame_dig -1
+    app_global_put
+    retsub
+
+
+// smart_contracts.token_decipher.contract.TokenDecipher.createAsset() -> void:
+createAsset:
+    // smart_contracts/token_decipher/contract.py:14-15
+    // @arc4.abimethod()
+    // def createAsset(self) ->None:
+    proto 0 0
+    // smart_contracts/token_decipher/contract.py:17-24
+    //     itxn.AssetConfig(
+    //     asset_name= self.asset_name,
+    //     unit_name=self.unit_name,
+    //     total= 1000,
+    //     decimals= 1,
+    //     default_frozen=False
+    // )
+    // .submit()
+    itxn_begin
+    // smart_contracts/token_decipher/contract.py:18
+    // asset_name= self.asset_name,
+    int 0
+    byte "asset_name"
+    app_global_get_ex
+    assert // check asset_name exists
+    // smart_contracts/token_decipher/contract.py:19
+    // unit_name=self.unit_name,
+    int 0
+    byte "unit_name"
+    app_global_get_ex
+    assert // check unit_name exists
+    // smart_contracts/token_decipher/contract.py:22
+    // default_frozen=False
+    int 0
+    itxn_field ConfigAssetDefaultFrozen
+    // smart_contracts/token_decipher/contract.py:21
+    // decimals= 1,
+    int 1
+    itxn_field ConfigAssetDecimals
+    // smart_contracts/token_decipher/contract.py:20
+    // total= 1000,
+    int 1000
+    itxn_field ConfigAssetTotal
+    itxn_field ConfigAssetUnitName
+    itxn_field ConfigAssetName
+    // smart_contracts/token_decipher/contract.py:17
+    // itxn.AssetConfig(
+    int acfg
+    itxn_field TypeEnum
+    // smart_contracts/token_decipher/contract.py:17-24
+    //     itxn.AssetConfig(
+    //     asset_name= self.asset_name,
+    //     unit_name=self.unit_name,
+    //     total= 1000,
+    //     decimals= 1,
+    //     default_frozen=False
+    // )
+    // .submit()
+    itxn_submit
+    // smart_contracts/token_decipher/contract.py:16
+    // self.asset_created = (
+    byte "asset_created"
+    // smart_contracts/token_decipher/contract.py:17-24
+    //     itxn.AssetConfig(
+    //     asset_name= self.asset_name,
+    //     unit_name=self.unit_name,
+    //     total= 1000,
+    //     decimals= 1,
+    //     default_frozen=False
+    // )
+    // .submit()
+    itxn CreatedAssetID
+    // smart_contracts/token_decipher/contract.py:16-26
+    // self.asset_created = (
+    //     itxn.AssetConfig(
+    //     asset_name= self.asset_name,
+    //     unit_name=self.unit_name,
+    //     total= 1000,
+    //     decimals= 1,
+    //     default_frozen=False
+    // )
+    // .submit()
+    // .created_asset.id
+    // )
+    app_global_put
+    retsub

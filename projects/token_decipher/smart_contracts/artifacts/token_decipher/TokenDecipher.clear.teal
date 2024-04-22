@@ -1,0 +1,7 @@
+#pragma version 10
+
+smart_contracts.token_decipher.contract.TokenDecipher.clear_state_program:
+    // smart_contracts/token_decipher/contract.py:4
+    // class TokenDecipher(ARC4Contract):
+    int 1
+    return
